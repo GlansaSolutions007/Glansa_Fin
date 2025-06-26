@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\LoanIssue; 
 use App\Models\Savings;
 use App\Models\CompanyUser;
+use Illuminate\Support\Facades\DB;
 
 
 class MemberController extends Controller
@@ -19,37 +20,24 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-
         $companyId = auth()->user()->role_id == 1
-                    ?  cache()->get('superadmin_company_' . auth()->id(), 0)
+                    ? cache()->get('superadmin_company_' . auth()->id(), 0)
                     : auth()->user()->company_id;
 
+        // Fetch paginated members with savings sum
         $members = Member::where('company_id', $companyId)
             ->where('isactive', 1)
-            // ->where('issuspended', 0)
+            ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'))
             ->orderBy('m_no', 'desc')
-            ->with('savings') // eager load savings relation
-            ->get()
-            ->map(function ($member) {
-                // sum openingbal + added + intonopening + intonadded from all savings for this member
-                $totalSaving = $member->savings->sum(function ($saving) {
-                                            return 
-                                                number_format(
-                            (float) ($saving->openingbal ?? 0) +
-                            (float) ($saving->added ?? 0) +
-                            (float) ($saving->intonopening ?? 0) +
-                            (float) ($saving->intonadded ?? 0),
-                            2,
-                            '.',
-                            ''
-                        );
-                                        });
+            ->paginate(20); // You can change 20 to any per-page limit
 
-                $member->total_saving = $totalSaving;
-                $member->m_no_encpt = Crypt::encryptString($member->m_no);
-                return $member;
-            });
-            return response()->json($members);
+        // Encrypt m_no
+        $members->getCollection()->transform(function ($member) {
+            $member->m_no_encpt = Crypt::encryptString($member->m_no);
+            return $member;
+        });
+
+        return response()->json($members);
     }
 
     /**
