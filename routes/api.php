@@ -46,7 +46,7 @@ Route::middleware('auth:api')->group(function(){
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('dashboard', [DashboardController::class, 'index']);
 
-    Route::get('memberlist', [MemberController::class, 'memberlist']);
+    Route::apiResource('memberlist', MemberController::class)->only(['memberlist']);
     Route::apiResource('members', MemberController::class);
     Route::apiResource('addmembers', MemberController::class)->only(['store']);
     // Route::apiResource('members',MemberController::class)->only(['show']);
