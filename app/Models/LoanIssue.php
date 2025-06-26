@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\DropDownOptions;
+use App\Models\DropdownOptions;
 
 class LoanIssue extends Model
 {
@@ -33,8 +33,8 @@ class LoanIssue extends Model
     }
     public function statusOption()
     {
-         return $this->belongsTo(DropDownOptions::class, 'status', 'id'); 
-        // return $this->belongsTo(DropDownOptions::class, 'status')
+         return $this->belongsTo(DropdownOptions::class, 'status', 'id'); 
+        // return $this->belongsTo(DropdownOptions::class, 'status')
         //             ->where('type', 'loan_status');
     }
 }
