@@ -18,26 +18,23 @@ class MemberController extends Controller
     /**
      * Display a listing of the resource.
      */
-   public function index(Request $request)
+    public function index(Request $request)
     {
+
         $companyId = auth()->user()->role_id == 1
-                    ? cache()->get('superadmin_company_' . auth()->id(), 0)
+                    ?  cache()->get('superadmin_company_' . auth()->id(), 0)
                     : auth()->user()->company_id;
 
-        // Fetch paginated members with savings sum
         $members = Member::where('company_id', $companyId)
             ->where('isactive', 1)
             ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'))
             ->orderBy('m_no', 'desc')
-             ->get(); 
-
-        // Encrypt m_no
-        $members->getCollection()->transform(function ($member) {
-            $member->m_no_encpt = Crypt::encryptString($member->m_no);
-            return $member;
-        });
-
-        return response()->json($members);
+            ->get()
+            ->map(function ($member) {
+                $member->m_no_encpt = Crypt::encryptString($member->m_no);
+                return $member;
+            });
+            return response()->json($members);
     }
 
     public function memberlist(Request $request)
@@ -71,6 +68,7 @@ class MemberController extends Controller
 
         return response()->json($members);
     }
+
 
     /**
      * Store a newly created resource in storage.
