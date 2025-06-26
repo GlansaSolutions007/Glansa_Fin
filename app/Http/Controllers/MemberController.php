@@ -25,7 +25,12 @@ class MemberController extends Controller
                     ?  cache()->get('superadmin_company_' . auth()->id(), 0)
                     : auth()->user()->company_id;
 
-        $members = Member::where('company_id', $companyId)
+         $members = Member::select([
+                'member_id',
+                'm_no',
+                'image',
+                'name'
+            ])
             ->where('isactive', 1)
             ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'))
             ->orderBy('m_no', 'desc')
