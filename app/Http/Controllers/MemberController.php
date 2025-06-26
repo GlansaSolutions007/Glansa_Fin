@@ -18,13 +18,35 @@ class MemberController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $companyId = auth()->user()->role_id == 1
                     ? cache()->get('superadmin_company_' . auth()->id(), 0)
                     : auth()->user()->company_id;
 
-        $perPage = $request->input('per_page', 20);
+        // Fetch paginated members with savings sum
+        $members = Member::where('company_id', $companyId)
+            ->where('isactive', 1)
+            ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'))
+            ->orderBy('m_no', 'desc')
+            ->paginate(20); // You can change 20 to any per-page limit
+
+        // Encrypt m_no
+        $members->getCollection()->transform(function ($member) {
+            $member->m_no_encpt = Crypt::encryptString($member->m_no);
+            return $member;
+        });
+
+        return response()->json($members);
+    }
+
+    public function memberlist(Request $request)
+    {
+        $companyId = auth()->user()->role_id == 1
+                    ? cache()->get('superadmin_company_' . auth()->id(), 0)
+                    : auth()->user()->company_id;
+
+        $perPage = $request->input('per_page', 10);
         $search = $request->input('search');
 
         $query = Member::where('company_id', $companyId)

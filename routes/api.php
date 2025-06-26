@@ -44,7 +44,9 @@ Route::middleware('auth:api')->group(function(){
     // Route::post('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
-     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::get('dashboard', [DashboardController::class, 'index']);
+
+    Route::get('memberlist', [MemberController::class, 'memberlist']);
     Route::apiResource('members', MemberController::class);
     Route::apiResource('addmembers', MemberController::class)->only(['store']);
     // Route::apiResource('members',MemberController::class)->only(['show']);
