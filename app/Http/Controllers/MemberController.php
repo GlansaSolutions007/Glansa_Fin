@@ -24,14 +24,24 @@ class MemberController extends Controller
                     ? cache()->get('superadmin_company_' . auth()->id(), 0)
                     : auth()->user()->company_id;
 
-        // Fetch paginated members with savings sum
-        $members = Member::where('company_id', $companyId)
-            ->where('isactive', 1)
-            ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'))
-            ->orderBy('m_no', 'desc')
-            ->paginate(20); // You can change 20 to any per-page limit
+        $perPage = $request->input('per_page', 20);
+        $search = $request->input('search');
 
-        // Encrypt m_no
+        $query = Member::where('company_id', $companyId)
+            ->where('isactive', 1)
+            ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'));
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                ->orWhere('surname', 'like', "%$search%")
+                ->orWhere('member_id', 'like', "%$search%")
+                ->orWhere('aadhaarno', 'like', "%$search%");
+            });
+        }
+
+        $members = $query->orderBy('m_no', 'desc')->paginate($perPage);
+
         $members->getCollection()->transform(function ($member) {
             $member->m_no_encpt = Crypt::encryptString($member->m_no);
             return $member;
