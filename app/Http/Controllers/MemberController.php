@@ -29,7 +29,7 @@ class MemberController extends Controller
             ->where('isactive', 1)
             ->withSum('savings as total_saving', DB::raw('openingbal + added + intonopening + intonadded'))
             ->orderBy('m_no', 'desc')
-            ->paginate(20); // You can change 20 to any per-page limit
+             ->get(); 
 
         // Encrypt m_no
         $members->getCollection()->transform(function ($member) {
